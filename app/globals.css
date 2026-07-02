@@ -1,0 +1,203 @@
+@import "tailwindcss";
+
+/* Fluid type scale.
+   Inside the device container (which sets container-type: inline-size via the
+   @container Tailwind utility), cqi = 1% of frame width and these tokens scale
+   with the device. Outside (e.g. the rotate overlay), cqi falls back to vi. */
+@theme {
+  --text-2xs: clamp(9px, 1cqi + 5px, 12px);
+  --text-2xs--line-height: 1.4;
+
+  --text-xs: clamp(11px, 1.2cqi + 7px, 14px);
+  --text-xs--line-height: 1.4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Focus rings — visible only on keyboard focus, in the brand peach.
+   Default outline suppressed so mouse/touch clicks don't show it. */
+button,
+input,
+[role="slider"] {
+  outline: none;
+}
+
+button:focus-visible,
+input:focus-visible,
+[role="slider"]:focus-visible {
+  outline: 2px solid #FF9980;
+  outline-offset: 2px;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100dvh;
+  background: #120400;
+  overflow: hidden;
+}
+
+/* ── Knob ─────────────────────────────── */
+
+/* Etch-a-Sketch cream/white knobs */
+.knob-body {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.85) 0%, transparent 55%),
+    radial-gradient(circle at 65% 75%, rgba(0, 0, 0, 0.18) 0%, transparent 55%),
+    conic-gradient(from 0deg, #F2EDE0, #E5DECC, #F2EDE0, #E5DECC, #F2EDE0);
+  border: 3px solid #B8AE96;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.55),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.knob-body:hover {
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.6),
+    0 2px 4px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.15);
+}
+
+.knob-body:active {
+  transform: scale(0.95);
+  box-shadow:
+    0 3px 8px rgba(0, 0, 0, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.15);
+}
+
+.knob-pip-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  transition: transform 0.14s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.knob-pip {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #991900;
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.4),
+    0 0 1px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Device shake animation ─────────────── */
+
+@keyframes device-shake {
+  0%   { transform: translate(0,     0)    rotate(0deg);    }
+  8%   { transform: translate(-10px, -4px) rotate(-2deg);   }
+  18%  { transform: translate(10px,  3px)  rotate(1.5deg);  }
+  28%  { transform: translate(-8px,  5px)  rotate(-1.2deg); }
+  38%  { transform: translate(9px,  -4px)  rotate(1.8deg);  }
+  48%  { transform: translate(-7px,  3px)  rotate(-1.4deg); }
+  58%  { transform: translate(8px,  -5px)  rotate(1deg);    }
+  68%  { transform: translate(-9px,  2px)  rotate(-1.6deg); }
+  78%  { transform: translate(5px,  -2px)  rotate(0.8deg);  }
+  88%  { transform: translate(-3px,  1px)  rotate(-0.4deg); }
+  100% { transform: translate(0,     0)    rotate(0deg);    }
+}
+
+.is-shaking {
+  animation: device-shake 0.75s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+  transform-origin: center center;
+}
+
+/* ── Screen darken overlay ──────────────── */
+
+@keyframes screen-darken {
+  0%   { opacity: 0; }
+  25%  { opacity: 0.5; }
+  65%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.screen-darken-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: #0c0c0c;
+  animation: screen-darken 0.55s ease-in forwards;
+  pointer-events: none;
+}
+
+/* ── Screen fade-in after reset ─────────── */
+
+@keyframes screen-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.is-fading-in {
+  animation: screen-fade-in 0.4s ease-out forwards;
+}
+
+/* ── Upload drop zone ──────────────────── */
+
+.drop-zone-active {
+  border-color: rgba(204, 34, 0, 0.7) !important;
+  background-color: rgba(204, 34, 0, 0.05) !important;
+}
+
+/* ── Rotate-to-portrait overlay ───────────
+   Short, landscape viewports (phones rotated) get a defensive overlay;
+   the portrait layout is cramped at that size, and the desktop-style
+   layout doesn't fit until chrome becomes fluid in a later pass. */
+.rotate-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  background: #120400;
+  color: #FF9980;
+  font-family: var(--font-geist-mono);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.rotate-overlay-icon {
+  width: 64px;
+  height: 64px;
+  opacity: 0.7;
+  animation: rotate-hint 2.4s ease-in-out infinite;
+}
+
+.rotate-overlay-text {
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: #FF9980;
+}
+
+@keyframes rotate-hint {
+  0%, 20%, 100% { transform: rotate(0deg); }
+  40%, 80%      { transform: rotate(-90deg); }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .rotate-overlay {
+    display: flex;
+  }
+}
